@@ -40,7 +40,6 @@ func (c *ChunkServer) WriteBlock(block Block) error {
 
 	for _, dir := range list {
 		if dir.Name() == block.Header.Filename {
-			// write data
 			ioutil.WriteFile(storePath, block.Data, os.ModeAppend)
 			return nil
 		}
