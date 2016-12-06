@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	master = NewMaster()
+	master = NewMaster(8888)
 )
 
 func TestMaster_RegisterChunkNode(t *testing.T) {
