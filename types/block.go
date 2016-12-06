@@ -1,8 +1,10 @@
-package file
+package types
 
 import (
 	"strconv"
 )
+
+type BlockID string
 
 // Block is storage unit of each file
 type Block struct {
