@@ -41,6 +41,7 @@ func runMasterRPC(c net.Conn, master *Master) {
 	}
 }
 
+// RunRPC setup a RPC server on master node.
 func (m *Master) RunRPC() {
 	listener, err := net.Listen("tcp", ":" + strconv.Itoa(m.RPCPort))
 	if err != nil {

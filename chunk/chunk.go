@@ -11,6 +11,7 @@ import (
 	"fmt"
 )
 
+// ChunkServer is the slave node which store data blocks.
 type ChunkServer struct {
 	NodeID  	  types.NodeID
 	Store 		  BlockStore
@@ -34,6 +35,7 @@ func NewChunkServer(port int, addr string, masterAddr string) *ChunkServer {
 	}
 }
 
+// Heartbeat send chunk server's heart according to an interval.
 func (chunk *ChunkServer) Heartbeat() {
 	for {
 		heartbeat(chunk)
@@ -70,6 +72,7 @@ func heartbeat(chunk *ChunkServer) {
 	}
 }
 
+// Run methods run up all necessary goroutines.
 func (chunk *ChunkServer) Run() {
 	go chunk.RunRPC()
 	go chunk.Heartbeat()

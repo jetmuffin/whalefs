@@ -21,6 +21,7 @@ func runChunkRPC(c net.Conn, chunk *ChunkServer) {
 	}
 }
 
+// RunRPC setup a RPC server on chunk node.
 func (chunk *ChunkServer) RunRPC() {
 	listener, err := net.Listen("tcp", ":" + strconv.Itoa(chunk.RPCPort))
 	if err != nil {
