@@ -1,8 +1,8 @@
-all: test
+all: deps test
 
 deps:
 	go get -t ./...
-	go get github.com/golang/lint/golint
+	#go get github.com/golang/lint/golint
 
 test:
 	go test -race -cover ./...
