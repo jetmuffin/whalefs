@@ -43,6 +43,14 @@ func TestBlockStore_BlockCheckSumPath(t *testing.T) {
 	}
 }
 
+func TestBlockStore_BlockSize(t *testing.T) {
+	blockId := types.BlockID("non exists id")
+	size, err := blockStore.BlockSize(blockId)
+	if size != -1 || err == nil {
+		t.Error("size should be -1 for non exists block id.")
+	}
+}
+
 func TestBlockStore_RWBlockAndMeta(t *testing.T) {
 	os.MkdirAll(blockStore.BlocksDirectory(), 0700)
 	os.MkdirAll(blockStore.MetaDirectory(), 0700)
