@@ -6,33 +6,27 @@ import (
 	"path"
 	"io/ioutil"
 	"reflect"
+	"github.com/JetMuffin/whalefs/file"
 )
 
 var (
 	data = []byte{1}
 	chunkServer = NewChunkServer("test")
-	blockHeader = BlockHeader{
+	blockHeader = file.BlockHeader{
 		DatanodeID: "1",
 		Filename: "fake_block",
 		Size: 200,
 		Index: 0,
 		NumberOfBlocks: 1,
 	}
-	blockNotFoundHeader = BlockHeader {
+	blockNotFoundHeader = file.BlockHeader {
 		Filename: "not_found_block",
 	}
-	block = Block{
+	block = file.Block{
 		Header: blockHeader,
 		Data: data,
 	}
 )
-
-func TestGetBlockName(t *testing.T) {
-	name := getBlockName(blockHeader)
-	if name != "block_0" {
-		t.Error("wrong block name.")
-	}
-}
 
 func TestWriteBlock(t *testing.T) {
 	defer func() {
@@ -59,7 +53,7 @@ func TestWriteBlock(t *testing.T) {
 		t.Error("file directory has not been created.")
 	}
 
-	storePath := path.Join(chunkServer.RootDir, blockHeader.Filename, getBlockName(blockHeader))
+	storePath := path.Join(chunkServer.RootDir, blockHeader.Filename, file.GetBlockName(blockHeader))
 	_, err = os.Stat(storePath)
 	if err != nil && !os.IsExist(err) {
 		t.Error("block has not been written.")
@@ -72,7 +66,7 @@ func TestReadBlock(t *testing.T)  {
 	} ()
 
 	os.MkdirAll(path.Join(chunkServer.RootDir, blockHeader.Filename), 0700)
-	ioutil.WriteFile(path.Join(chunkServer.RootDir, blockHeader.Filename, getBlockName(blockHeader)), data, os.ModePerm)
+	ioutil.WriteFile(path.Join(chunkServer.RootDir, blockHeader.Filename, file.GetBlockName(blockHeader)), data, os.ModePerm)
 
 	blockGot, err := chunkServer.ReadBlock(blockHeader)
 	if err != nil {
