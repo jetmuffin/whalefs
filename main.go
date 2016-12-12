@@ -1,16 +1,49 @@
 package main
 
 import (
+	"github.com/JetMuffin/whalefs/cmd"
 	log "github.com/Sirupsen/logrus"
 	"github.com/JetMuffin/whalefs/master"
+	"github.com/JetMuffin/whalefs/chunk"
 )
 
 func main() {
-	log.SetLevel(log.DebugLevel)
+	var debug bool
 
-	server := master.NewHTTPServer("127.0.0.1", 8888)
-	go server.ListenAndServe()
+	cli := cmd.App()
+	cli.Global(func(flag cmd.Flags) {
+		flag.BoolVar(&debug, "debug", false, "Show debug logs")
+	})
 
-	exit := make(chan bool)
-	<-exit
+	cli.Command("master", "Run mater node", func(flag cmd.Flags) {
+		configPath := flag.String("config", "./conf/whale.conf", "path to the master config file")
+		flag.Parse()
+
+		config, err := cmd.NewConfig(*configPath)
+		if err != nil {
+			log.Fatalf("Unexpected error when read config file: %v", err)
+		}
+
+		m := master.NewMaster(config)
+		m.Run()
+
+		<-make(chan bool)
+	})
+
+	cli.Command("chunkserver", "Run chunk server node", func(flag cmd.Flags) {
+		configPath := flag.String("config", "./conf/whale.conf", "path to the chunkserver config file")
+		flag.Parse()
+
+		config, err := cmd.NewConfig(*configPath)
+		if err != nil {
+			log.Fatalf("Unexpected error when read config file: %v", err)
+		}
+
+		c := chunk.NewChunkServer(config)
+		c.Run()
+
+		<-make(chan bool)
+	})
+
+	cli.Run()
 }

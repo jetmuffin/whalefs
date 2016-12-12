@@ -33,7 +33,7 @@ func runMasterRPC(c net.Conn, master *Master) {
 			log.WithField("err", err).Error("unable to parse message body.")
 			return
 		}
-		log.Infof("Heartbeat from node(%v).", message.NodeID)
+		log.Debugf("Heartbeat from node(%v).", message.NodeID)
 
 		// TODO send response to heartbeat
 		var resp comm.HeartbeatResponse

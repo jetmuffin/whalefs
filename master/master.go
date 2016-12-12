@@ -2,6 +2,7 @@ package master
 
 import (
 	. "github.com/JetMuffin/whalefs/types"
+	. "github.com/JetMuffin/whalefs/cmd"
 )
 
 // Master node controllers all metadata of the whole cluster.
@@ -12,9 +13,9 @@ type Master struct {
 }
 
 // NewMaster returns a master.
-func NewMaster(port int) *Master{
+func NewMaster(config *Config) *Master{
 	return &Master{
-		RPCPort: port,
+		RPCPort: config.Int("master_port"),
 		chunks: make(map[NodeID]*Node),
 		blocks: make(map[BlockID]map[NodeID]bool),
 	}

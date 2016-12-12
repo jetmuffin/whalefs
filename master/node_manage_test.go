@@ -2,10 +2,12 @@ package master
 
 import (
 	"testing"
+	"github.com/JetMuffin/whalefs/cmd"
 )
 
 var (
-	master = NewMaster(8888)
+	config, _ = cmd.NewConfig("../conf/whale.conf")
+	master = NewMaster(config)
 )
 
 func TestMaster_RegisterChunkNode(t *testing.T) {

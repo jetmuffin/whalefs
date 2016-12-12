@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"strings"
 	"io"
+	"strconv"
 )
 
 type Config struct {
@@ -24,11 +25,19 @@ func NewConfig(filepath string) (*Config, error) {
 	return config, nil
 }
 
-func (c *Config) Get(key string) string {
+func (c *Config) String(key string) string {
 	if value, exists := c.data[key]; exists {
 		return value
 	}
 	return ""
+}
+
+func (c *Config) Int(key string) int {
+	if value, exists := c.data[key]; exists {
+		i, _ := strconv.Atoi(value)
+		return i
+	}
+	return -1
 }
 
 func (c *Config) read() error {

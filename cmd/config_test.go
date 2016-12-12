@@ -1,8 +1,7 @@
 package cmd
 
-import "testing"
-
-var (
+import (
+	"testing"
 )
 
 func TestConfig_Get(t *testing.T) {
@@ -16,13 +15,23 @@ func TestConfig_Get(t *testing.T) {
 		t.Errorf("error when read config: %v.", config)
 	}
 
-	masterPort := config.Get("master_port")
-	if masterPort != "8001" {
-		t.Error("read config value error.")
+	masterPort := config.Int("master_port")
+	if masterPort != 8001 {
+		t.Error("read int value error.")
 	}
 
-	emptyValue := config.Get("nil_value")
-	if emptyValue != "" {
-		t.Error("should return nil for not exists key.")
+	masterAddr := config.String("master_ip")
+	if masterAddr != "127.0.0.1" {
+		t.Error("read string value error.")
+	}
+
+	emptyInt := config.Int("nil_int")
+	if emptyInt != -1 {
+		t.Error("should return -1 for non-exist key int.")
+	}
+
+	emptyString := config.String("nil_string")
+	if emptyString != "" {
+		t.Error("should '' nil for not exists string.")
 	}
 }

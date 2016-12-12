@@ -8,6 +8,7 @@ import (
 	"net/rpc"
 	log "github.com/Sirupsen/logrus"
 	comm "github.com/JetMuffin/whalefs/communication"
+	. "github.com/JetMuffin/whalefs/cmd"
 	"fmt"
 )
 
@@ -26,11 +27,11 @@ type ChunkServer struct {
 
 
 // NewChunkServer returns a server which store data.
-func NewChunkServer(port int, addr string, masterAddr string) *ChunkServer {
+func NewChunkServer(config *Config) *ChunkServer {
 	return &ChunkServer{
-		RPCPort: port,
-		MasterAddr: masterAddr,
-		Addr: addr,
+		RPCPort: config.Int("chunk_port"),
+		MasterAddr: config.String("master_addr"),
+		Addr: config.String("chunk_ip"),
 		heartbeatInterval: 1 * time.Second,
 	}
 }
