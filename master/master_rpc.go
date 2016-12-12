@@ -24,6 +24,8 @@ func runMasterRPC(c net.Conn, master *Master) {
 			log.WithField("err", err).Error("unable to parse message body.")
 			return
 		}
+
+		// TODO: re-register node when restart chunkserver.
 		nodeID := master.RegisterChunkNode(message.Addr)
 		server.Send(&nodeID)
 		log.WithField("nodeID", nodeID).Infof("Chunk node registered at %v, %v nodes totally.", message.Addr, len(master.chunks))
@@ -34,6 +36,9 @@ func runMasterRPC(c net.Conn, master *Master) {
 			return
 		}
 		log.Debugf("Heartbeat from node(%v).", message.NodeID)
+
+		// Update node information by heartbeat
+		master.UpdateNodeWithHeartbeat(message)
 
 		// TODO send response to heartbeat
 		var resp comm.HeartbeatResponse

@@ -67,7 +67,11 @@ func heartbeat(chunk *ChunkServer) {
 	}
 
 	// send heartbeat to master
-	err = client.Call("Heartbeat", comm.HeartbeatMessage{chunk.NodeID}, nil)
+	err = client.Call("Heartbeat", comm.HeartbeatMessage{
+		NodeID: 	chunk.NodeID,
+		Addr:		chunk.Addr,
+		Timestamp: 	time.Now(),
+	}, nil)
 	if err != nil {
 		log.Errorf("Heartbeat error: %v", err)
 	}
