@@ -4,15 +4,16 @@ import (
 	"net/http"
 	"html/template"
 	log "github.com/Sirupsen/logrus"
-	"os"
-	"path"
 	"io"
 	"strconv"
+	"io/ioutil"
+	. "github.com/JetMuffin/whalefs/types"
 )
 
 type HTTPServer struct {
-	Host string
-	Port int
+	Host 	  string
+	Port 	  int
+	blobQueue chan *Blob
 }
 
 func (server *HTTPServer) Addr() string {
@@ -28,24 +29,30 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, err := template.ParseFiles("static/upload.html")
 		if err != nil {
-			log.WithField("err", err).Error("Unable to render templates.")
+			log.Errorf("Unable to render templates: %v", err)
 			return
 		}
 		t.Execute(w, nil)
 	} else {
-		file, handle, err := r.FormFile("file")
-		defer file.Close()
+		file, header, err := r.FormFile("file")
 		if err != nil {
-			log.WithField("err", err).Error("Parse form file error.")
-		}
-
-		f, err := os.OpenFile(path.Join("upload", handle.Filename), os.O_WRONLY | os.O_CREATE, 0666)
-		if err != nil {
-			log.WithField("err", err).Error("Error create file.")
+			log.Errorf("Parse form file error: %v", err)
 			return
 		}
-		defer f.Close()
-		io.Copy(f, file)
+		defer file.Close()
+
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			log.Errorf("Cannot read bytes from uploaded file: %v", err)
+			return
+		}
+		blob := &Blob{
+			Content: bytes,
+			Length: len(bytes),
+			Name: header.Filename,
+		}
+		server.blobQueue <- blob
+
 		io.WriteString(w, "upload successful")
 	}
 }
@@ -54,9 +61,9 @@ func (server *HTTPServer) ListenAndServe()  {
 	http.HandleFunc("/upload", server.upload)
 	log.WithFields(log.Fields{"host": server.Host, "port": server.Port}).Info("HTTP Server start listening.")
 
-	http.ListenAndServe(server.Addr(), nil)
+	go http.ListenAndServe(server.Addr(), nil)
 }
 
-func NewHTTPServer(host string, port int) *HTTPServer {
-	return &HTTPServer{Host: host, Port: port}
+func NewHTTPServer(host string, port int, queue chan *Blob) *HTTPServer {
+	return &HTTPServer{Host: host, Port: port, blobQueue: queue}
 }
