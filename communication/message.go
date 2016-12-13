@@ -1,7 +1,6 @@
 package communication
 
 import (
-	. "github.com/JetMuffin/whalefs/types"
 	"time"
 )
 
@@ -15,7 +14,6 @@ type RegistrationMessage struct {
 // node's metric.
 // TODO add metric
 type HeartbeatMessage struct {
-	NodeID 		NodeID
 	Addr 		string
 	Timestamp 	time.Time
 }

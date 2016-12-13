@@ -4,8 +4,6 @@ import (
 	"time"
 )
 
-type NodeID string
-
 type NodeStatus int
 
 var (
@@ -14,8 +12,8 @@ var (
 )
 
 type Node struct {
-	ID		NodeID
-	Addr 		string
+	Hostname	string
+	IP 		string
 
 	Heath		NodeStatus
 	LastHeartbeat 	time.Time
@@ -23,10 +21,10 @@ type Node struct {
 }
 
 // NewInitialNode return a whole new node with initial information.
-func NewInitialNode(addr string, id NodeID) *Node{
+func NewInitialNode(ip string, hostname string) *Node{
 	return &Node {
-		ID:		id,
-		Addr: 		addr,
+		Hostname:	hostname,
+		IP: 		ip,
 		Heath: 		Healthy,
 		LastHeartbeat: 	time.Now(),
 		lastUtilization: 0,

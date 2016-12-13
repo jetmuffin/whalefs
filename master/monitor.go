@@ -10,7 +10,6 @@ func (m *Master) Monitor() {
 		for id, node := range m.chunks {
 			if node.IsHealthy() && node.HeartbeatDuration() > m.heartbeatCheckInterval {
 				log.WithField("Health", node.Heath).Errorf("node %v lost heartbeat.", id)
-				m.LostNode(node)
 			}
 		}
 		time.Sleep(1 * time.Second)

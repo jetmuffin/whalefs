@@ -10,8 +10,8 @@ import (
 // Master node controllers all metadata of the whole cluster.
 type Master struct {
 	RPCPort 		int
-	chunks			map[NodeID]*Node
-	blocks			map[BlockID]map[NodeID]bool
+	chunks			map[string]*Node
+	blocks			map[BlockID]map[string]bool
 
 	heartbeatCheckInterval 	time.Duration
 	nodeLock		sync.RWMutex
@@ -21,8 +21,8 @@ type Master struct {
 func NewMaster(config *Config) *Master{
 	return &Master{
 		RPCPort: config.Int("master_port"),
-		chunks: make(map[NodeID]*Node),
-		blocks: make(map[BlockID]map[NodeID]bool),
+		chunks: make(map[string]*Node),
+		blocks: make(map[BlockID]map[string]bool),
 		heartbeatCheckInterval: 10 * time.Second,
 	}
 }
