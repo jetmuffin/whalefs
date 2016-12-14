@@ -18,6 +18,13 @@ func runChunkRPC(c net.Conn, chunk *ChunkServer) {
 	}
 
 	switch method {
+	case "Write":
+		var blockMessage comm.BlockMessage
+		if err := server.ReadBody(&blockMessage); err != nil {
+			log.Error(err)
+			return
+		}
+
 	}
 }
 

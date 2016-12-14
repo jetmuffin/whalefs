@@ -5,14 +5,18 @@ import (
 	"time"
 )
 
+func (m *Master) checkChunkHealth() {
+	for id, node := range m.nodeManager.chunks {
+		if node.IsHealthy() && node.HeartbeatDuration() > m.heartbeatCheckInterval {
+			log.WithField("Health", node.Heath).Errorf("node %v lost heartbeat.", id)
+			m.nodeManager.LostNode(node)
+		}
+	}
+}
+
 func (m *Master) Monitor() {
 	for {
-		for id, node := range m.chunks {
-			if node.IsHealthy() && node.HeartbeatDuration() > m.heartbeatCheckInterval {
-				log.WithField("Health", node.Heath).Errorf("node %v lost heartbeat.", id)
-				m.LostNode(node)
-			}
-		}
+		m.checkChunkHealth()
 		time.Sleep(1 * time.Second)
 	}
 }

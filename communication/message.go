@@ -25,3 +25,7 @@ type HeartbeatMessage struct {
 type HeartbeatResponse struct {
 
 }
+
+type BlockMessage struct {
+	block Block
+}
