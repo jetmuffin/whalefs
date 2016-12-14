@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"io"
 	"testing"
+	"time"
+	"github.com/JetMuffin/whalefs/types"
 )
 
 func newfileUploadRequest(uri string, paramName, path string) (*http.Request, error) {
@@ -56,5 +58,13 @@ func TestHTTPServer_ListenAndServe(t *testing.T) {
 	client := &http.Client{}
 	go client.Do(request)
 
-	<- master.blobQueue
+	var blob *types.Blob
+	select {
+	case blob = <-master.blobQueue:
+	case <-time.After(1 * time.Second):
+	}
+
+	if blob == nil {
+		t.Error("Unable to get blob.")
+	}
 }

@@ -6,8 +6,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"io"
 	"strconv"
-	"io/ioutil"
 	. "github.com/JetMuffin/whalefs/types"
+	"io/ioutil"
 )
 
 type HTTPServer struct {
@@ -41,15 +41,16 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		bytes, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Errorf("Cannot read bytes from uploaded file: %v", err)
 			return
 		}
+
+		bytes, err := ioutil.ReadAll(file)
 		blob := &Blob{
-			Content: bytes,
-			Length: len(bytes),
 			Name: header.Filename,
+			Length: len(bytes),
+			Content: bytes,
 		}
 		server.blobQueue <- blob
 
