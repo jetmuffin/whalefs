@@ -10,11 +10,9 @@ import (
 	"testing"
 	"time"
 	"github.com/JetMuffin/whalefs/types"
-	"github.com/JetMuffin/whalefs/cmd"
 )
 
 var (
-	config, _ = cmd.NewConfig("../conf/whale.conf")
 	master = NewMaster(config)
 )
 

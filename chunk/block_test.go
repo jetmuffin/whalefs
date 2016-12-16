@@ -15,6 +15,17 @@ var (
 	block = types.BlockID("fake_block_1")
 )
 
+func TestNewBlockStore(t *testing.T) {
+	b := NewBlockStore("store")
+	defer os.RemoveAll(b.DataDir)
+
+	info, err := os.Stat(b.BlocksDirectory())
+	t.Log(info.IsDir())
+	if err != nil {
+		t.Errorf("Cannot create a new block store: %v.", err)
+	}
+}
+
 func TestBlockStore_BlocksDirectory(t *testing.T) {
 	expectedDir := path.Join("store", "blocks")
 	if blockStore.BlocksDirectory() != expectedDir {
