@@ -65,7 +65,7 @@ func TestHTTPServer_ListenAndServe(t *testing.T) {
 	var blob *types.Blob
 	select {
 	case blob = <-master.blockManager.blobQueue:
-	case <-time.After(1 * time.Second):
+	case <-time.After(5 * time.Second):
 	}
 
 	if blob == nil {
