@@ -101,3 +101,13 @@ func TestBlockStore_RWBlockAndMeta(t *testing.T) {
 		t.Error("block content incorrect.")
 	}
 }
+
+func TestBlockStore_Utilization(t *testing.T) {
+	os.MkdirAll(blockStore.BlocksDirectory(), 0700)
+	os.MkdirAll(blockStore.MetaDirectory(), 0700)
+	defer os.RemoveAll(blockStore.DataDir)
+
+	if blockStore.Utilization() != 0 {
+		t.Error("block usage error.")
+	}
+}

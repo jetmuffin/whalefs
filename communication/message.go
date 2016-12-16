@@ -17,6 +17,8 @@ type RegistrationMessage struct {
 type HeartbeatMessage struct {
 	NodeID 		NodeID
 	Addr 		string
+	Blocks 		[]BlockID
+	Utilization	int64
 	Timestamp 	time.Time
 }
 

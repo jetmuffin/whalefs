@@ -9,11 +9,31 @@ import (
 	"fmt"
 
 	"github.com/JetMuffin/whalefs/types"
+	"path/filepath"
+	log "github.com/Sirupsen/logrus"
 )
 
 // BlockStore is a block storage manage object.
 type BlockStore struct {
 	DataDir string
+}
+
+// NewBlockStore returns a new store with given data directory.
+func NewBlockStore(directory string) *BlockStore {
+	blockStore := &BlockStore{
+		DataDir: directory,
+	}
+
+	// if directory does not exist, create it.
+	_, err := os.Stat(blockStore.DataDir)
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(blockStore.BlocksDirectory(), 0700)
+		err = os.MkdirAll(blockStore.MetaDirectory(), 0700)
+		if err != nil {
+			log.Fatal("Cannot create store data directory, please check the chunk_data_dir configuration.")
+		}
+	}
+	return blockStore
 }
 
 // BlocksDirectory returns blocks storage directory path.
@@ -78,4 +98,20 @@ func (store *BlockStore) ReadBlock(block types.BlockID, w io.Writer) error {
 		return err
 	}
 	return nil
+}
+
+// Utilization returns total disk usage of store data directory.
+func (store *BlockStore) Utilization() int64 {
+	var size int64
+	err := filepath.Walk(store.DataDir, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	if err != nil {
+		return -1
+	} else {
+		return size
+	}
 }

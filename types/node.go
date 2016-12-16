@@ -17,6 +17,7 @@ type Node struct {
 	ID		NodeID
 	Addr 		string
 
+	Blocks		[]BlockID
 	Heath		NodeStatus
 	LastHeartbeat 	time.Time
 	lastUtilization int

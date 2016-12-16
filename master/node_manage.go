@@ -77,6 +77,7 @@ func (n *NodeManager) UpdateNodeWithHeartbeat(message comm.HeartbeatMessage) {
 
 	node.LastHeartbeat = message.Timestamp
 	node.Heath = Healthy
+	node.Blocks = message.Blocks
 	n.UpdateNode(node)
 }
 
