@@ -18,6 +18,7 @@ type Node struct {
 	Addr 		string
 
 	Blocks		[]BlockID
+	Connections	int
 	Heath		NodeStatus
 	LastHeartbeat 	time.Time
 	lastUtilization int
@@ -29,6 +30,7 @@ func NewInitialNode(addr string, id NodeID) *Node{
 		ID:		id,
 		Addr: 		addr,
 		Heath: 		Healthy,
+		Connections:	0,
 		LastHeartbeat: 	time.Now(),
 		lastUtilization: 0,
 	}

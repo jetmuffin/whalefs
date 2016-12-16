@@ -5,6 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	comm "github.com/JetMuffin/whalefs/communication"
 	"sync"
+	"sort"
 )
 
 type NodeManager struct {
@@ -79,6 +80,30 @@ func (n *NodeManager) UpdateNodeWithHeartbeat(message comm.HeartbeatMessage) {
 	node.Heath = Healthy
 	node.Blocks = message.Blocks
 	n.UpdateNode(node)
+}
+
+func (n *NodeManager) LeastBlocksNodes() []NodeID {
+	var nodes []NodeID
+	for nodeID, _ := range n.chunks {
+		nodes = append(nodes, nodeID)
+	}
+
+	sort.Stable(SortNodeByFunc(func(id NodeID) int {
+		return len(n.GetNode(id).Blocks)
+	}, nodes))
+	return nodes
+}
+
+func (n *NodeManager) LeastConnectionNodes() []NodeID {
+	var nodes []NodeID
+	for nodeID, _ := range n.chunks {
+		nodes = append(nodes, nodeID)
+	}
+
+	sort.Stable(SortNodeByFunc(func(id NodeID) int {
+		return n.GetNode(id).Connections
+	}, nodes))
+	return nodes
 }
 
 // LostNode wipe a node from healthy node.

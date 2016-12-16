@@ -4,6 +4,7 @@ import (
 	"testing"
 	. "github.com/JetMuffin/whalefs/types"
 	"reflect"
+	"strconv"
 )
 
 var (
@@ -47,5 +48,39 @@ func TestMaster_NodeAUDG(t *testing.T) {
 	manager.DeleteNode(newNode.ID)
 	if deletedNode := manager.GetNode(newNode.ID); deletedNode != nil {
 		t.Error("delete node error.")
+	}
+}
+
+func TestNodeManager_LeastBlocksNodes(t *testing.T) {
+	manager = NewNodeManager()
+	for i := 1; i <= 5; i++ {
+		node := NewInitialNode("127.0.0.1", NodeID(strconv.Itoa(i)))
+		for j := 1; j <= 6 - i; j++ {
+			node.Blocks = append(node.Blocks, BlockID("abc"))
+		}
+		manager.AddNode(node)
+	}
+
+	nodes := manager.LeastBlocksNodes()
+	for i, id := range nodes {
+		if len(manager.GetNode(id).Blocks) != i + 1 {
+			t.Error("sort nodes by block number error.")
+		}
+	}
+}
+
+func TestNodeManager_LeastConnectionNodes(t *testing.T) {
+	manager = NewNodeManager()
+	for i := 1; i <= 5; i++ {
+		node := NewInitialNode("127.0.0.1", NodeID(strconv.Itoa(i)))
+		node.Connections = 5 - i
+		manager.AddNode(node)
+	}
+
+	nodes := manager.LeastConnectionNodes()
+	for i, id := range nodes {
+		if manager.GetNode(id).Connections != i {
+			t.Error("sort nodes by block number error.")
+		}
 	}
 }
