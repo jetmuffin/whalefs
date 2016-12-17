@@ -2,9 +2,6 @@ package chunk
 
 import (
 	"time"
-	"net"
-	"net/rpc/jsonrpc"
-	"net/rpc"
 	log "github.com/Sirupsen/logrus"
 	comm "github.com/JetMuffin/whalefs/communication"
 	. "github.com/JetMuffin/whalefs/cmd"
@@ -18,6 +15,7 @@ type ChunkServer struct {
 	MasterAddr 	  string
 	RPCPort	 	  int
 	store 		  *BlockStore
+	rpcClient 	  *comm.RPCClient
 	heartbeatInterval time.Duration
 
 	blocksToDelete	  chan BlockID
@@ -35,6 +33,12 @@ func NewChunkServer(config *Config) *ChunkServer {
 		heartbeatInterval: 1 * time.Second,
 	}
 
+	client, err := comm.NewRPClient(chunk.MasterAddr, 10 * time.Second)
+	if err != nil {
+		log.Fatalf("Cannot connect to master: %v", err)
+	}
+	chunk.rpcClient = client
+
 	blocks, err := chunk.store.ListBlocks()
 	if err != nil {
 		log.Errorf("Cannot list chunk blocks: %v", err)
@@ -46,52 +50,47 @@ func NewChunkServer(config *Config) *ChunkServer {
 
 // Heartbeat send chunk server's heart according to an interval.
 func (chunk *ChunkServer) Heartbeat() {
-	for {
-		heartbeat(chunk)
-		time.Sleep(chunk.heartbeatInterval)
-	}
+	go func() {
+		for {
+			// TODO: Check if the connection is closed by master or not.
+
+			heartbeat(chunk)
+			time.Sleep(chunk.heartbeatInterval)
+		}
+	} ()
 }
 
-func heartbeat(chunk *ChunkServer) {
-	conn, err := net.Dial("tcp", chunk.MasterAddr)
-	if err != nil {
-		log.Errorf("Couldn't connect to master at %v", chunk.MasterAddr)
-		chunk.NodeID = ""
-		return
-	}
-	codec := jsonrpc.NewClientCodec(conn)
-	client := rpc.NewClientWithCodec(codec)
-	defer codec.Close()
-
+func heartbeat(c *ChunkServer) {
 	// if chunk server has no id, register it to master and get a node id.
-	if len(chunk.NodeID) == 0 {
-		err = client.Call("Register", &comm.RegistrationMessage{Addr: chunk.Addr}, &chunk.NodeID)
+	if len(c.NodeID) == 0 {
+		err := c.rpcClient.Connection.Call("MasterRPC.Register", &comm.RegistrationMessage{Addr: c.Addr},
+			&c.NodeID)
 		if err != nil {
 			log.Error(err)
 		}
-		log.Infof("Registered to master(%v) and got node id %v", chunk.MasterAddr, chunk.NodeID)
+		log.Infof("Registered to master(%v) and got node id %v", c.MasterAddr, c.NodeID)
 		return
 	}
 
-	currentBlocks, err := chunk.store.ListBlocks()
+	currentBlocks, err := c.store.ListBlocks()
 	if err != nil {
 		log.Errorf("Cannot list chunk blocks: %v", err)
 	}
 
 	// send heartbeat to master
-	err = client.Call("Heartbeat", comm.HeartbeatMessage{
-		NodeID: 	chunk.NodeID,
-		Addr:		chunk.Addr,
+	err = c.rpcClient.Connection.Call("MasterRPC.Heartbeat", comm.HeartbeatMessage{
+		NodeID: 	c.NodeID,
+		Addr:		c.Addr,
 		Blocks: 	currentBlocks,
 		Timestamp: 	time.Now(),
 	}, nil)
 	if err != nil {
-		log.Errorf("Heartbeat error: %v", err)
+		log.Errorf("Cannot send heart beat to master: %v", err)
 	}
 }
 
 // Run methods run up all necessary goroutines.
 func (chunk *ChunkServer) Run() {
-	go chunk.RunRPC()
-	go chunk.Heartbeat()
+	chunk.ListenRPC()
+	chunk.Heartbeat()
 }

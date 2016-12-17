@@ -15,8 +15,10 @@ func (m *Master) checkChunkHealth() {
 }
 
 func (m *Master) Monitor() {
-	for {
-		m.checkChunkHealth()
-		time.Sleep(1 * time.Second)
-	}
+	go func() {
+		for {
+			m.checkChunkHealth()
+			time.Sleep(1 * time.Second)
+		}
+	} ()
 }

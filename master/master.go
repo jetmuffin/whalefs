@@ -29,8 +29,11 @@ func NewMaster(config *Config) *Master{
 
 // Run method setup all necessary goroutines.
 func (master *Master) Run() {
-	go master.RunRPC()
-	go master.Monitor()
+	// Listen to RPC port
+	master.ListenRPC()
+
+	// Start monitor
+	master.Monitor()
 
 	// Run http server
 	master.httpServer.ListenAndServe()

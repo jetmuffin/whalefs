@@ -22,12 +22,13 @@ type HeartbeatMessage struct {
 	Timestamp 	time.Time
 }
 
+type BlockMessage struct {
+	block Block
+}
+
 // HeartbeatResponse send from master to chunk node to do some action to
 // keep consistency of cluster.
 type HeartbeatResponse struct {
 
 }
 
-type BlockMessage struct {
-	block Block
-}
