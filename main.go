@@ -13,6 +13,9 @@ func main() {
 	cli := cmd.App()
 	cli.Global(func(flag cmd.Flags) {
 		flag.BoolVar(&debug, "debug", false, "Show debug logs")
+		if(debug) {
+			log.SetLevel(log.DebugLevel)
+		}
 	})
 
 	cli.Command("master", "Run mater node", func(flag cmd.Flags) {

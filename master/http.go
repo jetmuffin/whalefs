@@ -49,7 +49,7 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 		bytes, err := ioutil.ReadAll(file)
 		blob := &Blob{
 			Name: header.Filename,
-			Length: len(bytes),
+			Length: int64(len(bytes)),
 			Content: bytes,
 		}
 		server.blobQueue <- blob

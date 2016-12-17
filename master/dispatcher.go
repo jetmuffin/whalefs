@@ -2,23 +2,53 @@ package master
 
 import (
 	. "github.com/JetMuffin/whalefs/types"
+	comm "github.com/JetMuffin/whalefs/communication"
+	log "github.com/Sirupsen/logrus"
+	"time"
 )
 
 type Dispatcher struct {
-	queue chan *Blob
-	blockSize int
-	manager *NodeManager
+	blockManager 	*BlockManager
+	nodeManager 	*NodeManager
 }
 
-func (d *Dispatcher) dispatch() {
-	//for {
-	//	blob := <- d.queue
-	//	bytesLeft := blob.Length
-	//	for bytesLeft > 0 {
-	//		var id comm.UUID = comm.RandUUID()
-	//		blockID := BlockID(id.Hex())
-	//
-	//		bytesLeft = bytesLeft - d.blockSize
-	//	}
-	//}
+func NewDispatcher(blockManager *BlockManager, nodeManager *NodeManager) *Dispatcher{
+	return &Dispatcher{
+		blockManager: blockManager,
+		nodeManager: nodeManager,
+	}
 }
+
+func (d *Dispatcher) Dispatch() {
+	log.Info("Dispatcher start dispatch.")
+	go func() {
+		for {
+			blob := <- d.blockManager.blobQueue
+			log.Info("Got a blob, start dispatch.")
+			chunks := d.nodeManager.LeastBlocksNodes()
+
+			var id comm.UUID = comm.RandUUID()
+			block := NewBlock(id.Hex(), blob.Name, blob.Content, blob.Length)
+			block.Header.Replications = d.blockManager.blockReplication
+
+			if len(chunks) < d.blockManager.blockReplication {
+				log.Error("Cannot write block: chunk number less than replication.")
+				continue
+			}
+			for i := 0; i < d.blockManager.blockReplication; i++ {
+				node := d.nodeManager.GetNode(chunks[i])
+				block.Header.Chunk = node.ID
+
+				client, err := comm.NewRPClient(node.Addr, 5 * time.Second)
+				if err != nil {
+					log.Errorf("Cannot connect to node %v: %v", node.Addr, err)
+				}
+
+				var checksum string
+				client.Connection.Call("ChunkRPC.Write", block, &checksum)
+				log.WithField("checksum", checksum).Infof("Write block %v successful", block.BlockID)
+			}
+		}
+	} ()
+}
+
