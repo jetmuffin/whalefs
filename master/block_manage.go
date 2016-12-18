@@ -54,6 +54,15 @@ func (b *BlockManager) ListFile() []*File {
 	return files
 }
 
+func (b *BlockManager) AddBlock(id FileID, block *BlockHeader) {
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	if file, exists := b.files[id]; exists {
+		file.Blocks = append(file.Blocks, block)
+		b.files[id] = file
+	}
+}
+
 func (b *BlockManager) UpdateFileStatus(id FileID, status FileStatus) {
 	b.lock.Lock()
 	defer b.lock.Unlock()

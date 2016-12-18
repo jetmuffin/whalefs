@@ -35,6 +35,8 @@ func (d *Dispatcher) Dispatch() {
 				log.Error("Cannot write block: chunk number less than replication.")
 				continue
 			}
+			d.blockManager.UpdateFileStatus(blob.FileID, FileWriting)
+
 			for i := 0; i < d.blockManager.blockReplication; i++ {
 				node := d.nodeManager.GetNode(chunks[i])
 				block.Header.Chunk = node.ID
@@ -46,8 +48,12 @@ func (d *Dispatcher) Dispatch() {
 
 				var checksum string
 				client.Connection.Call("ChunkRPC.Write", block, &checksum)
+
+				d.blockManager.AddBlock(blob.FileID, block.Header)
 				log.WithField("checksum", checksum).Infof("Write block %v successful", block.BlockID)
 			}
+
+			d.blockManager.UpdateFileStatus(blob.FileID, FileOK)
 		}
 	} ()
 }

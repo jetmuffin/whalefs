@@ -51,6 +51,16 @@ func (n *NodeManager) GetNode(id NodeID) *Node{
 	}
 }
 
+func (n *NodeManager) ListNode() []*Node {
+	n.lock.RLock()
+	defer n.lock.RUnlock()
+	var nodes []*Node
+	for _, node := range(n.chunks) {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
 // RegisterChunkNode generate universal unique id for a chunk node and register this node.
 // to master's map.
 func (n *NodeManager) RegisterChunkNode(addr string) NodeID {
@@ -79,6 +89,7 @@ func (n *NodeManager) UpdateNodeWithHeartbeat(message comm.HeartbeatMessage) {
 	node.LastHeartbeat = message.Timestamp
 	node.Heath = Healthy
 	node.Blocks = message.Blocks
+	node.LastUtilization = message.Utilization
 	n.UpdateNode(node)
 }
 

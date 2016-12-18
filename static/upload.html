@@ -11,6 +11,7 @@
             <th>size</th>
             <th>create time</th>
             <th>status</th>
+            <th>replications</th>
         </tr>
         {{with .Files}}
         {{range .}}
@@ -19,6 +20,13 @@
             <th>{{.Length}}</th>
             <th>{{.Createtime}}</th>
             <th>{{.Status}}</th>
+            <th>
+                {{with .Blocks}}
+                {{range .}}
+                    {{.Chunk}}
+                {{end}}
+                {{end}}
+            </th>
         </tr>
         {{end}}
         {{end}}

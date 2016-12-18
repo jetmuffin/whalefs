@@ -3,6 +3,7 @@ package types
 import "time"
 
 type Blob struct {
+	FileID 	FileID
 	Length	int64
 	Content []byte
 	Name 	string
@@ -16,6 +17,7 @@ type File struct {
 	Length 		int64
 	Createtime 	time.Time
 	Status 		FileStatus
+	Blocks 		[]*BlockHeader
 }
 
 type FileStatus int

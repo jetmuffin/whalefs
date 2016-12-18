@@ -82,6 +82,7 @@ func heartbeat(c *ChunkServer) {
 		NodeID: 	c.NodeID,
 		Addr:		c.Addr,
 		Blocks: 	currentBlocks,
+		Utilization:    c.store.Utilization(),
 		Timestamp: 	time.Now(),
 	}, nil)
 	if err != nil {

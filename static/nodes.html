@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nodes</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>address</th>
+            <th>blocks</th>
+            <th>utilization</th>
+            <th>last heartbeat</th>
+        </tr>
+        {{with .Nodes}}
+        {{range .}}
+        <tr>
+            <th>{{.ID}}</th>
+            <th>{{.Addr}}</th>
+            <th>{{len .Blocks}}</th>
+            <th>{{.LastUtilization}}</th>
+            <th>{{.LastHeartbeat}}</th>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
+</body>
+</html>

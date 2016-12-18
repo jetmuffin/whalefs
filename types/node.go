@@ -21,7 +21,7 @@ type Node struct {
 	Connections	int
 	Heath		NodeStatus
 	LastHeartbeat 	time.Time
-	lastUtilization int
+	LastUtilization int64
 }
 
 // NewInitialNode return a whole new node with initial information.
@@ -32,7 +32,7 @@ func NewInitialNode(addr string, id NodeID) *Node{
 		Heath: 		Healthy,
 		Connections:	0,
 		LastHeartbeat: 	time.Now(),
-		lastUtilization: 0,
+		LastUtilization: 0,
 	}
 }
 
