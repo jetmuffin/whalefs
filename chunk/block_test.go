@@ -12,7 +12,10 @@ import (
 
 var (
 	blockStore = BlockStore{DataDir: "store"}
-	block = types.BlockID("fake_block_1")
+	block = &types.BlockHeader{
+		BlockID: types.BlockID("fake_block_1"),
+	}
+
 )
 
 func TestNewBlockStore(t *testing.T) {
@@ -34,8 +37,8 @@ func TestBlockStore_BlocksDirectory(t *testing.T) {
 }
 
 func TestBlockStore_BlockStoragePath(t *testing.T) {
-	expectedPath := path.Join("store", "blocks", string(block))
-	if blockStore.BlockStoragePath(block) != expectedPath {
+	expectedPath := path.Join("store", "blocks", string(block.BlockID))
+	if blockStore.BlockStoragePath(block.BlockID) != expectedPath {
 		t.Error("block storage path incorrect.")
 	}
 }
@@ -48,8 +51,8 @@ func TestBlockStore_MetaDirectory(t *testing.T) {
 }
 
 func TestBlockStore_BlockCheckSumPath(t *testing.T) {
-	expectedPath := path.Join("store", "meta", string(block)+".crc32")
-	if blockStore.BlockCheckSumPath(block) != expectedPath {
+	expectedPath := path.Join("store", "meta", string(block.BlockID)+".crc32")
+	if blockStore.BlockMetaPath(block.BlockID) != expectedPath {
 		t.Error("checksum storage path incorrect.")
 	}
 }
@@ -69,34 +72,34 @@ func TestBlockStore_RWBlockAndMeta(t *testing.T) {
 
 	// Test WriteBlock()
 	r := strings.NewReader("fake content")
-	checksum, err := blockStore.WriteBlock(block, 12, r)
+	checksum, err := blockStore.WriteBlock(block.BlockID, 12, r)
 	if err != nil {
 		t.Errorf("error when write blocks: %v.", err)
 	}
 
 	// Test BlockChecksum()
-	if c, _ := blockStore.BlockCheckSum(block); c != checksum {
+	if c, _ := blockStore.BlockCheckSum(block.BlockID); c != checksum {
 		t.Error("checksum compute error.")
 	}
 
 	// Test WriteChecksum()
-	if err = blockStore.WriteChecksum(block, checksum); err != nil{
+	if err = blockStore.WriteMeta(block, checksum); err != nil{
 		t.Errorf("error when write checksum: %v", err)
 	}
 
 	// Test ReadChecksum()
-	if c, _ := blockStore.ReadChecksum(block); c != checksum {
-		t.Error("incorrect checksum read from file.")
+	if c, _ := blockStore.ReadMeta(block.BlockID); !reflect.DeepEqual(block, c) {
+		t.Error("incorrect meta read from file.")
 	}
 
 	// Test BlockSize()
-	size, err := blockStore.BlockSize(block)
+	size, err := blockStore.BlockSize(block.BlockID)
 	if size != 12 {
 		t.Error("wrong block size.")
 	}
 
 	// Test ListBlocks()
-	expectedList := []types.BlockID{block}
+	expectedList := []types.BlockID{block.BlockID}
 	list, err := blockStore.ListBlocks()
 	if !reflect.DeepEqual(expectedList, list) {
 		t.Error("list blocks error.")
@@ -104,7 +107,7 @@ func TestBlockStore_RWBlockAndMeta(t *testing.T) {
 
 	// Test ReadBlocks()
 	w := bytes.NewBufferString("")
-	err = blockStore.ReadBlock(block, w)
+	err = blockStore.ReadBlock(block.BlockID, w)
 	if err != nil {
 		t.Errorf("error when read blocks: %v.", err)
 	}

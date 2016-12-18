@@ -12,17 +12,19 @@ import (
 
 type ChunkRPC struct {
 	blockStore *BlockStore
+	blockSyncDone chan *BlockHeader
 }
 
-func NewChunkRPC(blockStore *BlockStore) *ChunkRPC {
+func NewChunkRPC(blockStore *BlockStore, blockSyncDone chan *BlockHeader) *ChunkRPC {
 	return &ChunkRPC{
 		blockStore: blockStore,
+		blockSyncDone: blockSyncDone,
 	}
 }
 
 func (c *ChunkRPC) Write(block Block, checksum *string) error {
 	cs, err := c.blockStore.WriteBlock(block.ID, block.Header.Size, block.Reader())
-	err = c.blockStore.WriteChecksum(block.ID, cs)
+	err = c.blockStore.WriteMeta(block.Header, cs)
 	*checksum = cs
 	if err != nil {
 		log.Errorf("Write block %v error: %v", block.ID, err)
@@ -42,9 +44,22 @@ func (c *ChunkRPC) Read(blockID BlockID, reply *communication.BlockMessage) erro
 	return err
 }
 
+func (c *ChunkRPC) Sync(block Block, checksum *string) error {
+	cs, err := c.blockStore.WriteBlock(block.ID, block.Header.Size, block.Reader())
+	err = c.blockStore.WriteMeta(block.Header, cs)
+	if err != nil {
+		log.Errorf("Write block %v error: %v", block.ID, err)
+		return err
+	}
+	log.Infof("Successful synchronize block %v with checksum %v", block.ID, cs)
+
+	c.blockSyncDone <- block.Header
+	return nil
+}
+
 // ListenRPC setup a RPC server on chunk node.
 func (c *ChunkServer) ListenRPC() {
-	rpc.Register(NewChunkRPC(c.store))
+	rpc.Register(NewChunkRPC(c.store, c.blockSyncDone))
 	listener, err := net.Listen("tcp", ":" + strconv.Itoa(c.RPCPort))
 	if err != nil {
 		log.Fatalf("Error: listen to rpc port error: %v.", err)

@@ -16,20 +16,35 @@ type Block struct {
 
 // BlockHeaders holds Block metadata
 type BlockHeader struct {
-	BlockID 	BlockID
-	FileID 		FileID
-	Chunk		NodeID
-	Filename   	string  // Storage name of this block
-	Size       	int64   // Size of block in bytes
-	Replications 	int     // Total number of blocks in file
+	BlockID 	BlockID		`json:"block_id"`
+	FileID 		FileID		`json:"file_id"`
+	Chunk		NodeID		`json:"chunk"`
+	Checksum 	string  	`json:"checksum"`
+	Filename   	string   	`json:"filenam"`
+	Size       	int64    	`json:"size"`
 }
 
-func NewBlock(filename string, data []byte, size int64) *Block{
+type SyncBlock struct {
+	BlockID BlockID
+	Addr  	string
+	NodeID 	NodeID
+}
+
+func NewSyncBlock(blockID BlockID, addr string, nodeID NodeID) *SyncBlock{
+	return &SyncBlock{
+		BlockID: blockID,
+		Addr: addr,
+		NodeID: nodeID,
+	}
+}
+
+func NewBlock(filename string, data []byte, size int64, chunk NodeID) *Block{
 	id := RandUUID()
 	header := &BlockHeader{
 		BlockID:  BlockID(id.Hex()),
 		Filename: filename,
 		Size: size,
+		Chunk: chunk,
 	}
 	block := &Block{
 		ID: BlockID(id.Hex()),

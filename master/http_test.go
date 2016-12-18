@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"io"
 	"testing"
-	"time"
-	"github.com/JetMuffin/whalefs/types"
 )
 
 var (
@@ -61,14 +59,4 @@ func TestHTTPServer_ListenAndServe(t *testing.T) {
 	}
 	client := &http.Client{}
 	go client.Do(request)
-
-	var blob *types.Blob
-	select {
-	case blob = <-master.blockManager.blobQueue:
-	case <-time.After(5 * time.Second):
-	}
-
-	if blob == nil {
-		t.Error("Unable to get blob.")
-	}
 }

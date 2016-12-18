@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	bm = NewBlockManager(0, 0)
+	bm = NewBlockManager()
 )
 
 func TestBlockManager_File(t *testing.T) {
@@ -37,7 +37,7 @@ func TestBlockManager_File(t *testing.T) {
 		t.Error("Update file status error.")
 	}
 
-	bm.AddBlock(files[1].ID, NewBlock("1", nil, 0).Header)
+	bm.AddBlock(files[1].ID, NewBlock("1", nil, 0, NodeID(1)).Header)
 	if file := bm.GetFile(files[1].ID); len(file.Blocks) != 1 {
 		t.Error("Add block error.")
 	}

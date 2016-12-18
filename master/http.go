@@ -19,6 +19,7 @@ type HTTPServer struct {
 	Port 	  	int
 	blockManager 	*BlockManager
 	nodeManager     *NodeManager
+
 }
 
 func (server *HTTPServer) Addr() string {
@@ -56,16 +57,29 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		b, err := ioutil.ReadAll(file)
-		fileMeta := NewFile(header.Filename, int64(len(b)))
+		data, err := ioutil.ReadAll(file)
+		fileMeta := NewFile(header.Filename, int64(len(data)))
 		server.blockManager.AddFile(fileMeta)
-		blob := &Blob{
-			FileID: fileMeta.ID,
-			Name: header.Filename,
-			Length: int64(len(b)),
-			Content: b,
+
+		chunks := server.nodeManager.LeastBlocksNodes()
+		// No enough chunks to store replications.
+		if len(chunks) == 0 {
+			log.Error("Cannot write block: no chunk server available.")
+			return
 		}
-		server.blockManager.blobQueue <- blob
+
+		node := server.nodeManager.GetNode(chunks[0])
+		block := NewBlock(header.Filename, data, int64(len(data)), node.ID)
+		var checksum string
+
+		// TODO: handle the situation that this node is down.
+		server.blockManager.AddBlock(fileMeta.ID, block.Header)
+		client, err := comm.NewRPClient(node.Addr, 5 * time.Second)
+		if err != nil {
+			log.Errorf("Cannot connect to node %v: %v", node.Addr, err)
+		}
+		client.Connection.Call("ChunkRPC.Write", block, &checksum)
+		log.WithField("checksum", checksum).Infof("Write block %v successful", block.ID)
 
 		http.Redirect(w, r, "/upload", 301)
 	}
@@ -103,6 +117,7 @@ func (server *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: if no nodes available
 	block := blocks[0]
+	log.Info(block)
 	node := server.nodeManager.GetNode(block.Chunk)
 	log.WithField("addr", node.Addr).Infof("Try to read block from node %v", node.ID)
 

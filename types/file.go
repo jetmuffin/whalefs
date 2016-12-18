@@ -15,6 +15,7 @@ type File struct {
 	ID		FileID
 	Name 		string
 	Length 		int64
+	Replications 	int
 	Createtime 	time.Time
 	Status 		FileStatus
 	Blocks 		map[BlockID]*BlockHeader
@@ -38,6 +39,7 @@ func NewFile(name string, length int64) *File {
 		Length: length,
 		Createtime: time.Now(),
 		Blocks: make(map[BlockID]*BlockHeader),
-		Status: FileInQueue,
+		Status: FileWriting,
+		Replications: 0,
 	}
 }

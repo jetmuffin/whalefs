@@ -8,19 +8,13 @@ import (
 type BlockManager struct {
 	files			map[FileID]*File
 	blocks 			map[BlockID]*BlockHeader
-	blockSize		int
-	blockReplication	int
-	blobQueue 		chan *Blob
 	lock 			sync.RWMutex
 }
 
-func NewBlockManager(blockSize int, blockReplication int) *BlockManager {
+func NewBlockManager() *BlockManager {
 	return &BlockManager{
 		files: make(map[FileID]*File),
 		blocks: make(map[BlockID]*BlockHeader),
-		blockSize: blockSize,
-		blockReplication: blockReplication,
-		blobQueue: make(chan *Blob),
 	}
 }
 
@@ -59,11 +53,11 @@ func (b *BlockManager) ListFile() []*File {
 func (b *BlockManager) AddBlock(id FileID, block *BlockHeader) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
-	if file, exists := b.files[id]; exists {
+	if _, exists := b.files[id]; exists {
 		// TODO: ensure thread safe for blocks.
+		b.files[id].Blocks[block.BlockID] = block
+		b.files[id].Replications ++
 		block.FileID = id
-		file.Blocks[block.BlockID] = block
-		b.files[id] = file
 		b.blocks[block.BlockID] = block
 	}
 }
@@ -80,6 +74,15 @@ func (b *BlockManager) DeleteBlock(id FileID, blockID BlockID) {
 	if _, exists := b.blocks[blockID]; exists {
 		delete(b.blocks, blockID)
 	}
+}
+
+func (b *BlockManager) GetBlock(blockID BlockID) *BlockHeader {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	if block, exists := b.blocks[blockID]; exists {
+		return block
+	}
+	return nil
 }
 
 func (b *BlockManager) HasBlock(blockID BlockID) bool {

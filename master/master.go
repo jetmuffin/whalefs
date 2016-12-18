@@ -11,7 +11,7 @@ type Master struct {
 	httpServer		*HTTPServer
 	nodeManager		*NodeManager
 	blockManager		*BlockManager
-	dispatcher 		*Dispatcher
+	replicationController 	*ReplicationController
 	heartbeatCheckInterval 	time.Duration
 }
 
@@ -21,9 +21,10 @@ func NewMaster(config *Config) *Master{
 		RPCPort: config.Int("master_port"),
 		heartbeatCheckInterval: 10 * time.Second,
 		nodeManager: NewNodeManager(),
-		blockManager: NewBlockManager(config.Int("block_size"), config.Int("block_replication")),
+		blockManager: NewBlockManager(),
+
 	}
-	master.dispatcher = NewDispatcher(master.blockManager, master.nodeManager)
+	master.replicationController = NewReplicationController(config.Int("block_replication"))
 	master.httpServer = NewHTTPServer(config.String("master_ip"), config.Int("master_http_port"),
 		master.blockManager, master.nodeManager)
 	return master
@@ -37,8 +38,6 @@ func (master *Master) Run() {
 	// Start monitor
 	master.Monitor()
 
-	// Dispatcher start dispatch
-	master.dispatcher.Dispatch()
 
 	// Run http server
 	master.httpServer.ListenAndServe()

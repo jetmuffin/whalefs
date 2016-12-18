@@ -10,14 +10,16 @@ import (
 )
 
 type MasterRPC struct {
-	nodeManager *NodeManager
-	blockManager *BlockManager
+	nodeManager 		*NodeManager
+	blockManager 		*BlockManager
+	replicationController 	*ReplicationController
 }
 
-func NewMasterRPC(nodeManager *NodeManager, blockManager *BlockManager) *MasterRPC{
+func NewMasterRPC(nodeManager *NodeManager, blockManager *BlockManager, replicationController *ReplicationController) *MasterRPC{
 	return &MasterRPC{
 		nodeManager: nodeManager,
 		blockManager: blockManager,
+		replicationController: replicationController,
 	}
 }
 
@@ -36,27 +38,42 @@ func (c *MasterRPC) Heartbeat(message comm.HeartbeatMessage, reply *comm.Heartbe
 	// Update node information by heartbeat
 	c.nodeManager.UpdateNodeWithHeartbeat(message)
 
-	// TODO send response to heartbeat
 	// Tell this node to delete dead blocks
-	var deadBlock []BlockID
+	var deadBlocks []BlockID
+	var blocks []BlockID
 	for _, blockID := range(message.Blocks) {
 		if !c.blockManager.HasBlock(blockID) {
-			deadBlock = append(deadBlock, blockID)
+			deadBlocks = append(deadBlocks, blockID)
+		} else {
+			blocks = append(blocks, blockID)
 		}
 	}
-
-	if len(deadBlock) > 0 {
+	if len(deadBlocks) > 0 {
 		log.Infof("Found %v inconsistent dead blocks from node %v, force to delete them.",
-			len(deadBlock), message.NodeID)
+			len(deadBlocks), message.NodeID)
 	}
+	reply.DeadBlocks = deadBlocks
 
-	reply.DeadBlock = deadBlock
+	// Tell this node to synchronize blocks
+	syncBlocks := c.replicationController.Replicate(c.blockManager, c.nodeManager, blocks)
+	if len(syncBlocks) > 0 {
+		log.Infof("%v blocks will be synchorize from node %v", len(syncBlocks), message.NodeID)
+	}
+	reply.SyncBlocks = syncBlocks
+
+	return nil
+}
+
+func (c *MasterRPC) SyncDone(block *BlockHeader, reply *comm.SyncDoneResponse) error {
+	c.blockManager.AddBlock(block.FileID, block)
+	log.Infof("Synchronize done on node %v for block %v.", block.Chunk, block.BlockID)
+
 	return nil
 }
 
 // ListenRPC setup a RPC server on master node.
 func (m *Master) ListenRPC() {
-	rpc.Register(NewMasterRPC(m.nodeManager, m.blockManager))
+	rpc.Register(NewMasterRPC(m.nodeManager, m.blockManager, m.replicationController))
 	listener, err := net.Listen("tcp", ":" + strconv.Itoa(m.RPCPort))
 	if err != nil {
 		log.Fatalf("Error: listen to rpc port error: %v.", err)

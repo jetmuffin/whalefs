@@ -123,6 +123,6 @@ func (store *BlockStore) DeleteBlock(block types.BlockID) error {
 	if err != nil {
 		return err
 	}
-	err = os.Remove(store.BlockCheckSumPath(block))
+	err = os.Remove(store.BlockMetaPath(block))
 	return err
 }

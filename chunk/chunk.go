@@ -18,7 +18,8 @@ type ChunkServer struct {
 	rpcClient 	  *comm.RPCClient
 	heartbeatInterval time.Duration
 
-	blocksToDelete	  chan BlockID
+	blocksToSync	  chan *SyncBlock
+	blockSyncDone 	  chan *BlockHeader
 	deadBlocks	  []BlockID
 }
 
@@ -26,11 +27,13 @@ type ChunkServer struct {
 // NewChunkServer returns a server which store data.
 func NewChunkServer(config *Config) *ChunkServer {
 	chunk := &ChunkServer{
-		RPCPort: config.Int("chunk_port"),
-		MasterAddr: config.String("master_addr"),
-		Addr: config.String("chunk_ip"),
-		store: NewBlockStore(config.String("chunk_data_dir")),
-		heartbeatInterval: 1 * time.Second,
+		RPCPort: 		config.Int("chunk_port"),
+		MasterAddr: 		config.String("master_addr"),
+		Addr: 			config.String("chunk_ip"),
+		store: 			NewBlockStore(config.String("chunk_data_dir")),
+		heartbeatInterval: 	1 * time.Second,
+		blocksToSync: 		make(chan *SyncBlock),
+		blockSyncDone: 		make(chan *BlockHeader),
 	}
 
 	client, err := comm.NewRPClient(chunk.MasterAddr, 10 * time.Second)
@@ -53,7 +56,6 @@ func (chunk *ChunkServer) Heartbeat() {
 	go func() {
 		for {
 			// TODO: Check if the connection is closed by master or not.
-
 			heartbeat(chunk)
 			time.Sleep(chunk.heartbeatInterval)
 		}
@@ -93,14 +95,23 @@ func heartbeat(c *ChunkServer) {
 	}
 
 	// delete inconsistent blocks
-	for _, blockID := range(reply.DeadBlock) {
+	for _, blockID := range(reply.DeadBlocks) {
 		c.store.DeleteBlock(blockID)
 		log.Infof("Delete inconsistent dead block %v", blockID)
 	}
+
+	// synchronize blocks
+	go func() {
+		for _, syncBlocks := range(reply.SyncBlocks) {
+			c.blocksToSync <- syncBlocks
+		}
+	}()
 }
 
 // Run methods run up all necessary goroutines.
 func (chunk *ChunkServer) Run() {
 	chunk.ListenRPC()
 	chunk.Heartbeat()
+	chunk.synchronize()
+	chunk.synchronizeDone()
 }
