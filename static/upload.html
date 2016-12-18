@@ -16,7 +16,7 @@
         {{with .Files}}
         {{range .}}
         <tr>
-            <th>{{.Name}}</th>
+            <th><a href="/download?id={{.ID}}">{{.Name}}</a></th>
             <th>{{.Length}}</th>
             <th>{{.Createtime}}</th>
             <th>{{.Status}}</th>

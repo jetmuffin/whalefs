@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"net/rpc"
 	. "github.com/JetMuffin/whalefs/types"
+	"github.com/JetMuffin/whalefs/communication"
+	"bytes"
 )
 
 type ChunkRPC struct {
@@ -19,15 +21,25 @@ func NewChunkRPC(blockStore *BlockStore) *ChunkRPC {
 }
 
 func (c *ChunkRPC) Write(block Block, checksum *string) error {
-	cs, err := c.blockStore.WriteBlock(block.BlockID, block.Header.Size, block.Reader())
-	err = c.blockStore.WriteChecksum(block.BlockID, cs)
+	cs, err := c.blockStore.WriteBlock(block.ID, block.Header.Size, block.Reader())
+	err = c.blockStore.WriteChecksum(block.ID, cs)
 	*checksum = cs
 	if err != nil {
-		log.Errorf("Write block %v error: %v", block.BlockID, err)
+		log.Errorf("Write block %v error: %v", block.ID, err)
 		return err
 	}
-	log.Infof("Successful write block %v with checksum %v", block.BlockID, cs)
+	log.Infof("Successful write block %v with checksum %v", block.ID, cs)
 	return nil
+}
+
+func (c *ChunkRPC) Read(blockID BlockID, reply *communication.BlockMessage) error {
+	w := bytes.NewBufferString("")
+	err := c.blockStore.ReadBlock(blockID, w)
+	checksum, err := c.blockStore.BlockCheckSum(blockID)
+	reply.Data = w.Bytes()
+	reply.Checksum = checksum
+	log.WithField("checksum", checksum).Infof("Read block %v", blockID)
+	return err
 }
 
 // ListenRPC setup a RPC server on chunk node.

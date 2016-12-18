@@ -9,13 +9,14 @@ type BlockID string
 
 // Block is storage unit of each file
 type Block struct {
-	BlockID  BlockID
+	ID  BlockID
 	Header 	*BlockHeader // metadata
 	Data 	[]byte	    // contents of this block
 }
 
 // BlockHeaders holds Block metadata
 type BlockHeader struct {
+	BlockID 	BlockID
 	Chunk		NodeID
 	Filename   	string  // Storage name of this block
 	Size       	int64   // Size of block in bytes
@@ -25,11 +26,12 @@ type BlockHeader struct {
 func NewBlock(filename string, data []byte, size int64) *Block{
 	id := RandUUID()
 	header := &BlockHeader{
+		BlockID:  BlockID(id.Hex()),
 		Filename: filename,
 		Size: size,
 	}
 	block := &Block{
-		BlockID: BlockID(id.Hex()),
+		ID: BlockID(id.Hex()),
 		Header: header,
 		Data: data,
 	}

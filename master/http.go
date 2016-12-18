@@ -4,9 +4,14 @@ import (
 	"net/http"
 	"html/template"
 	log "github.com/Sirupsen/logrus"
+	comm "github.com/JetMuffin/whalefs/communication"
 	"strconv"
 	. "github.com/JetMuffin/whalefs/types"
 	"io/ioutil"
+	"sort"
+	"time"
+	"io"
+	"bytes"
 )
 
 type HTTPServer struct {
@@ -51,14 +56,14 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		bytes, err := ioutil.ReadAll(file)
-		fileMeta := NewFile(header.Filename, int64(len(bytes)))
+		b, err := ioutil.ReadAll(file)
+		fileMeta := NewFile(header.Filename, int64(len(b)))
 		server.blockManager.AddFile(fileMeta)
 		blob := &Blob{
 			FileID: fileMeta.ID,
 			Name: header.Filename,
-			Length: int64(len(bytes)),
-			Content: bytes,
+			Length: int64(len(b)),
+			Content: b,
 		}
 		server.blockManager.blobQueue <- blob
 
@@ -81,9 +86,48 @@ func (server *HTTPServer) nodes(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, data)
 }
 
+func (server *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fileId := FileID(r.Form.Get("id"))
+
+	// TODO: check if the id is illegal or not
+	file := server.blockManager.GetFile(fileId)
+	blocks := file.Blocks
+	sort.Stable(SortBlockByFunc(func(block *BlockHeader) int {
+		return server.nodeManager.GetNode(block.Chunk).Connections
+	}, blocks))
+
+	// TODO: if no nodes available
+	block := blocks[0]
+	node := server.nodeManager.GetNode(block.Chunk)
+	log.WithField("addr", node.Addr).Infof("Try to read block from node %v", node.ID)
+
+	client, err := comm.NewRPClient(node.Addr, 5 * time.Second)
+	if err != nil {
+		log.Errorf("Cannot connect to node %v: %v", node.Addr, err)
+		return
+	}
+
+	var message comm.BlockMessage
+	client.Connection.Call("ChunkRPC.Read", block.BlockID, &message)
+
+	// TODO: check the checksum received.
+	log.WithFields(log.Fields{
+		"checksum": message.Checksum,
+		"length": len(message.Data),
+	}).Infof("Receive block data from node %v.", node.ID)
+
+	b := bytes.NewBuffer(message.Data)
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename=" + file.Name)
+	io.Copy(w, b)
+}
+
 func (server *HTTPServer) ListenAndServe()  {
 	http.HandleFunc("/upload", server.upload)
 	http.HandleFunc("/nodes", server.nodes)
+	http.HandleFunc("/download", server.download)
 	log.WithFields(log.Fields{"host": server.Host, "port": server.Port}).Info("HTTP Server start listening.")
 
 	go http.ListenAndServe(server.Addr(), nil)

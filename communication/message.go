@@ -23,7 +23,8 @@ type HeartbeatMessage struct {
 }
 
 type BlockMessage struct {
-	block Block
+	Data []byte
+	Checksum string
 }
 
 // HeartbeatResponse send from master to chunk node to do some action to
