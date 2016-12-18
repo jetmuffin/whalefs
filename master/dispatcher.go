@@ -36,7 +36,6 @@ func (d *Dispatcher) Dispatch() {
 
 			for i := 0; i < d.blockManager.blockReplication; i++ {
 				node := d.nodeManager.GetNode(chunks[i])
-
 				block := NewBlock(blob.Name, blob.Content, blob.Length)
 				block.Header.Replications = d.blockManager.blockReplication
 				block.Header.Chunk = node.ID

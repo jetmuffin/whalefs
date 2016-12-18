@@ -11,11 +11,13 @@ import (
 
 type MasterRPC struct {
 	nodeManager *NodeManager
+	blockManager *BlockManager
 }
 
-func NewMasterRPC(nodeManager *NodeManager) *MasterRPC{
+func NewMasterRPC(nodeManager *NodeManager, blockManager *BlockManager) *MasterRPC{
 	return &MasterRPC{
 		nodeManager: nodeManager,
+		blockManager: blockManager,
 	}
 }
 
@@ -35,13 +37,26 @@ func (c *MasterRPC) Heartbeat(message comm.HeartbeatMessage, reply *comm.Heartbe
 	c.nodeManager.UpdateNodeWithHeartbeat(message)
 
 	// TODO send response to heartbeat
-	reply = new(comm.HeartbeatResponse)
+	// Tell this node to delete dead blocks
+	var deadBlock []BlockID
+	for _, blockID := range(message.Blocks) {
+		if !c.blockManager.HasBlock(blockID) {
+			deadBlock = append(deadBlock, blockID)
+		}
+	}
+
+	if len(deadBlock) > 0 {
+		log.Infof("Found %v inconsistent dead blocks from node %v, force to delete them.",
+			len(deadBlock), message.NodeID)
+	}
+
+	reply.DeadBlock = deadBlock
 	return nil
 }
 
 // ListenRPC setup a RPC server on master node.
 func (m *Master) ListenRPC() {
-	rpc.Register(NewMasterRPC(m.nodeManager))
+	rpc.Register(NewMasterRPC(m.nodeManager, m.blockManager))
 	listener, err := net.Listen("tcp", ":" + strconv.Itoa(m.RPCPort))
 	if err != nil {
 		log.Fatalf("Error: listen to rpc port error: %v.", err)

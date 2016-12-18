@@ -124,3 +124,4 @@ func (n *NodeManager) LostNode(node *Node) {
 	n.DeleteNode(node.ID)
 	log.Infof("Node %v disconnect from master, %v nodes totally now.", node.ID, len(n.chunks))
 }
+

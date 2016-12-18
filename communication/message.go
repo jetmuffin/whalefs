@@ -30,7 +30,7 @@ type BlockMessage struct {
 // HeartbeatResponse send from master to chunk node to do some action to
 // keep consistency of cluster.
 type HeartbeatResponse struct {
-
+	DeadBlock	[]BlockID
 }
 
 

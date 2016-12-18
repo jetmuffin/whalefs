@@ -117,3 +117,12 @@ func (store *BlockStore) Utilization() int64 {
 		return size
 	}
 }
+
+func (store *BlockStore) DeleteBlock(block types.BlockID) error {
+	err := os.Remove(store.BlockStoragePath(block))
+	if err != nil {
+		return err
+	}
+	err = os.Remove(store.BlockCheckSumPath(block))
+	return err
+}

@@ -77,6 +77,8 @@ func heartbeat(c *ChunkServer) {
 		log.Errorf("Cannot list chunk blocks: %v", err)
 	}
 
+	var reply comm.HeartbeatResponse
+
 	// send heartbeat to master
 	err = c.rpcClient.Connection.Call("MasterRPC.Heartbeat", comm.HeartbeatMessage{
 		NodeID: 	c.NodeID,
@@ -84,9 +86,16 @@ func heartbeat(c *ChunkServer) {
 		Blocks: 	currentBlocks,
 		Utilization:    c.store.Utilization(),
 		Timestamp: 	time.Now(),
-	}, nil)
+	}, &reply)
+
 	if err != nil {
 		log.Errorf("Cannot send heart beat to master: %v", err)
+	}
+
+	// delete inconsistent blocks
+	for _, blockID := range(reply.DeadBlock) {
+		c.store.DeleteBlock(blockID)
+		log.Infof("Delete inconsistent dead block %v", blockID)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 
 type BlockManager struct {
 	files			map[FileID]*File
+	blocks 			map[BlockID]*BlockHeader
 	blockSize		int
 	blockReplication	int
 	blobQueue 		chan *Blob
@@ -16,6 +17,7 @@ type BlockManager struct {
 func NewBlockManager(blockSize int, blockReplication int) *BlockManager {
 	return &BlockManager{
 		files: make(map[FileID]*File),
+		blocks: make(map[BlockID]*BlockHeader),
 		blockSize: blockSize,
 		blockReplication: blockReplication,
 		blobQueue: make(chan *Blob),
@@ -62,6 +64,7 @@ func (b *BlockManager) AddBlock(id FileID, block *BlockHeader) {
 		block.FileID = id
 		file.Blocks[block.BlockID] = block
 		b.files[id] = file
+		b.blocks[block.BlockID] = block
 	}
 }
 
@@ -74,6 +77,18 @@ func (b *BlockManager) DeleteBlock(id FileID, blockID BlockID) {
 			delete(file.Blocks, blockID)
 		}
 	}
+	if _, exists := b.blocks[blockID]; exists {
+		delete(b.blocks, blockID)
+	}
+}
+
+func (b *BlockManager) HasBlock(blockID BlockID) bool {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	if _, exists := b.blocks[blockID]; exists {
+		return true
+	}
+	return false
 }
 
 func (b *BlockManager) UpdateFileStatus(id FileID, status FileStatus) {
