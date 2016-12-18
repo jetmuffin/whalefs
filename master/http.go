@@ -32,7 +32,6 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 			log.Errorf("Unable to render templates: %v", err)
 			return
 		}
-
 		data := struct {
 			Files []*File
 		}{

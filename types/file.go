@@ -31,7 +31,9 @@ var (
 )
 
 func NewFile(name string, length int64) *File {
+	var id UUID = RandUUID()
 	return &File{
+		ID: FileID(id.Hex()),
 		Name: name,
 		Length: length,
 		Createtime: time.Now(),

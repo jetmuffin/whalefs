@@ -64,7 +64,7 @@ func (n *NodeManager) ListNode() []*Node {
 // RegisterChunkNode generate universal unique id for a chunk node and register this node.
 // to master's map.
 func (n *NodeManager) RegisterChunkNode(addr string) NodeID {
-	var id comm.UUID = comm.RandUUID()
+	var id UUID = RandUUID()
 	nodeID := NodeID(id.Hex())
 
 	n.AddNode(NewInitialNode(addr, nodeID))

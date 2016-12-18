@@ -22,13 +22,14 @@ type BlockHeader struct {
 	Replications 	int     // Total number of blocks in file
 }
 
-func NewBlock(id string, filename string, data []byte, size int64) *Block{
+func NewBlock(filename string, data []byte, size int64) *Block{
+	id := RandUUID()
 	header := &BlockHeader{
 		Filename: filename,
 		Size: size,
 	}
 	block := &Block{
-		BlockID: BlockID(id),
+		BlockID: BlockID(id.Hex()),
 		Header: header,
 		Data: data,
 	}

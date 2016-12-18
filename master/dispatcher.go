@@ -27,8 +27,7 @@ func (d *Dispatcher) Dispatch() {
 			log.Info("Got a blob, start dispatch.")
 			chunks := d.nodeManager.LeastBlocksNodes()
 
-			var id comm.UUID = comm.RandUUID()
-			block := NewBlock(id.Hex(), blob.Name, blob.Content, blob.Length)
+			block := NewBlock(blob.Name, blob.Content, blob.Length)
 			block.Header.Replications = d.blockManager.blockReplication
 
 			if len(chunks) < d.blockManager.blockReplication {

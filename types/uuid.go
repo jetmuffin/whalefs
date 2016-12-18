@@ -1,4 +1,4 @@
-package communication
+package types
 
 import (
 	crand "crypto/rand"
