@@ -25,7 +25,7 @@ func NewMaster(config *Config) *Master{
 	}
 	master.dispatcher = NewDispatcher(master.blockManager, master.nodeManager)
 	master.httpServer = NewHTTPServer(config.String("master_ip"), config.Int("master_http_port"),
-		master.blockManager.blobQueue)
+		master.blockManager)
 	return master
 }
 

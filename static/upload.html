@@ -5,6 +5,24 @@
     <title>Upload</title>
 </head>
 <body>
+    <table>
+        <tr>
+            <th>name</th>
+            <th>size</th>
+            <th>create time</th>
+            <th>status</th>
+        </tr>
+        {{with .Files}}
+        {{range .}}
+        <tr>
+            <th>{{.Name}}</th>
+            <th>{{.Length}}</th>
+            <th>{{.Createtime}}</th>
+            <th>{{.Status}}</th>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
     <form action="upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" value="">
         <input type="submit" name="submit">

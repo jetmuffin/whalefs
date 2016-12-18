@@ -4,16 +4,15 @@ import (
 	"net/http"
 	"html/template"
 	log "github.com/Sirupsen/logrus"
-	"io"
 	"strconv"
 	. "github.com/JetMuffin/whalefs/types"
 	"io/ioutil"
 )
 
 type HTTPServer struct {
-	Host 	  string
-	Port 	  int
-	blobQueue chan *Blob
+	Host 	  	string
+	Port 	  	int
+	blockManager 	*BlockManager
 }
 
 func (server *HTTPServer) Addr() string {
@@ -28,11 +27,18 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.Method == "GET" {
 		t, err := template.ParseFiles("static/upload.html")
+
 		if err != nil {
 			log.Errorf("Unable to render templates: %v", err)
 			return
 		}
-		t.Execute(w, nil)
+
+		data := struct {
+			Files []*File
+		}{
+			Files: server.blockManager.ListFile(),
+		}
+		t.Execute(w, data)
 	} else {
 		file, header, err := r.FormFile("file")
 		if err != nil {
@@ -52,9 +58,10 @@ func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 			Length: int64(len(bytes)),
 			Content: bytes,
 		}
-		server.blobQueue <- blob
+		server.blockManager.blobQueue <- blob
+		server.blockManager.AddFile(NewFile(header.Filename, int64(len(bytes))))
 
-		io.WriteString(w, "upload successful")
+		http.Redirect(w, r, "/upload", 301)
 	}
 }
 
@@ -65,6 +72,6 @@ func (server *HTTPServer) ListenAndServe()  {
 	go http.ListenAndServe(server.Addr(), nil)
 }
 
-func NewHTTPServer(host string, port int, queue chan *Blob) *HTTPServer {
-	return &HTTPServer{Host: host, Port: port, blobQueue: queue}
+func NewHTTPServer(host string, port int, blockManager *BlockManager) *HTTPServer {
+	return &HTTPServer{Host: host, Port: port, blockManager: blockManager}
 }

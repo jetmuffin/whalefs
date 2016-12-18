@@ -25,8 +25,10 @@ func NewBlockStore(directory string) *BlockStore {
 	}
 
 	// if directory does not exist, create it.
+	// TODO: check all block store directory, 'store/blocks', 'store/meta', eg.
 	_, err := os.Stat(blockStore.DataDir)
 	if os.IsNotExist(err) {
+		log.Infof("Block store directory %v not exists, create it.", blockStore.DataDir)
 		err = os.MkdirAll(blockStore.BlocksDirectory(), 0700)
 		err = os.MkdirAll(blockStore.MetaDirectory(), 0700)
 		if err != nil {
