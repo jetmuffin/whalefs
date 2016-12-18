@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	config, _ = cmd.NewConfig("../conf/whale.conf")
+	config, _ = cmd.NewConfig("../conf/whale.conf.template")
 )
 
 func TestNewMaster(t *testing.T) {

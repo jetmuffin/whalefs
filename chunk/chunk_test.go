@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	configPath = "../conf/whale.conf"
+	configPath = "../conf/whale.conf.template"
 	config, _ = cmd.NewConfig(configPath)
 	m = master.NewMaster(config)
 )

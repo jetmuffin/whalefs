@@ -10,7 +10,7 @@ func TestConfig_Get(t *testing.T) {
 		t.Error("should throw error when read wrong config path.")
 	}
 
-	config, err = NewConfig("../conf/whale.conf")
+	config, err = NewConfig("../conf/whale.conf.template")
 	if err != nil {
 		t.Errorf("error when read config: %v.", config)
 	}

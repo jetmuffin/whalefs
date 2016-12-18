@@ -55,7 +55,7 @@ func TestHTTPServer_AddrWithScheme(t *testing.T) {
 func TestHTTPServer_ListenAndServe(t *testing.T) {
 	go master.httpServer.ListenAndServe()
 
-	request, err := newfileUploadRequest("http://127.0.0.1:8003/upload", "file", "../conf/whale.conf")
+	request, err := newfileUploadRequest("http://127.0.0.1:8003/upload", "file", "../conf/whale.conf.template")
 	if err != nil {
 		t.Fatal(err)
 	}

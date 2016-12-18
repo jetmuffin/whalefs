@@ -31,3 +31,4 @@ upload/*
 store/*
 
 deploy.sh
+conf/whale.conf
