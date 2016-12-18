@@ -17,7 +17,7 @@ type File struct {
 	Length 		int64
 	Createtime 	time.Time
 	Status 		FileStatus
-	Blocks 		[]*BlockHeader
+	Blocks 		map[BlockID]*BlockHeader
 }
 
 type FileStatus int
@@ -37,6 +37,7 @@ func NewFile(name string, length int64) *File {
 		Name: name,
 		Length: length,
 		Createtime: time.Now(),
+		Blocks: make(map[BlockID]*BlockHeader),
 		Status: FileInQueue,
 	}
 }

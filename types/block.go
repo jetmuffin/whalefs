@@ -17,6 +17,7 @@ type Block struct {
 // BlockHeaders holds Block metadata
 type BlockHeader struct {
 	BlockID 	BlockID
+	FileID 		FileID
 	Chunk		NodeID
 	Filename   	string  // Storage name of this block
 	Size       	int64   // Size of block in bytes

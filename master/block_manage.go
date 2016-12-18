@@ -58,8 +58,21 @@ func (b *BlockManager) AddBlock(id FileID, block *BlockHeader) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 	if file, exists := b.files[id]; exists {
-		file.Blocks = append(file.Blocks, block)
+		// TODO: ensure thread safe for blocks.
+		block.FileID = id
+		file.Blocks[block.BlockID] = block
 		b.files[id] = file
+	}
+}
+
+func (b *BlockManager) DeleteBlock(id FileID, blockID BlockID) {
+	// TODO: ensure thread safe for deletion.
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	if file, exists := b.files[id]; exists {
+		if _, bexists := file.Blocks[blockID]; bexists {
+			delete(file.Blocks, blockID)
+		}
 	}
 }
 

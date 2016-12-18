@@ -92,7 +92,11 @@ func (server *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: check if the id is illegal or not
 	file := server.blockManager.GetFile(fileId)
-	blocks := file.Blocks
+
+	var blocks []*BlockHeader
+	for _, block := range(file.Blocks) {
+		blocks = append(blocks, block)
+	}
 	sort.Stable(SortBlockByFunc(func(block *BlockHeader) int {
 		return server.nodeManager.GetNode(block.Chunk).Connections
 	}, blocks))
