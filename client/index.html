@@ -1,0 +1,28 @@
+<html>
+<head>
+    <title>Chat Example</title>
+    <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
+<body ng-app="chat" ng-controller="MainCtl">
+<div class="container">
+    <div class="row">
+        <h1>WhaleFS</h1>
+        <div>
+            <span class="label label-primary" style="margin-right: 5px;">Chunk IP</span>{{node}}
+            <span class="label label-info" style="margin-right: 5px;">Chunk Time</span>{{timestamp * 1000|date:'yyyy-MM-dd HH:mm:ss'}}
+        </div>
+    </div>
+    <div class="row" style="margin-top: 10px">
+        <!--<button class="btn btn-default" ng-click="connect()" ng-if="connect">Login</button>-->
+        <button class="btn btn-default" ng-click="connect()" ng-show="!login">Login</button>
+        {{connect}}
+        <div class="row" ng-show="login">
+
+        </div>
+    </div>
+</div>
+<script src="//cdn.bootcss.com/angular.js/1.2.20/angular.js"></script>
+<script type="text/javascript" src="client.js"></script>
+</body>
+</html>

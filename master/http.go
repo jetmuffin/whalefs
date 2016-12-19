@@ -33,15 +33,19 @@ func (server *HTTPServer) AddrWithScheme() string {
 func (server *HTTPServer) upload(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.Method == "GET" {
-		t, err := template.ParseFiles("static/upload.html")
+		t, err := template.ParseFiles("static/client.html")
 		if err != nil {
 			log.Errorf("Unable to render templates: %v", err)
 			return
 		}
+		nodes := server.nodeManager.LeastConnectionNodes()
+		node := server.nodeManager.GetNode(nodes[0])
 		data := struct {
 			Files []*File
+			Node *Node
 		}{
 			Files: server.blockManager.ListFile(),
+			Node: node,
 		}
 		t.Execute(w, data)
 	} else {
@@ -144,6 +148,7 @@ func (server *HTTPServer) download(w http.ResponseWriter, r *http.Request) {
 }
 
 func (server *HTTPServer) ListenAndServe()  {
+	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.HandleFunc("/upload", server.upload)
 	http.HandleFunc("/nodes", server.nodes)
 	http.HandleFunc("/download", server.download)

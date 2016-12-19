@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload</title>
+    <link href="//cdn.bootcss.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" rel="stylesheet">
+    <!--<link rel="stylesheet" href="bootstrap.min.css">-->
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <h1>WhaleFS</h1>
+        <div>
+            <span class="label label-primary" style="margin-right: 5px;">Chunk IP</span>{{.Node.Addr}}
+            <span class="label label-info" style="margin-right: 5px;">Chunk Time</span><span id="time"></span>
+        </div>
+        <div>
+            <button class="btn btn-info" id="login">Login</button>
+        </div>
+    </div>
+    <div class="row" style="display: none;" id="form">
+        <div class="row">
+            <table class="table table-hover">
+                <tr>
+                    <th>name</th>
+                    <th>size</th>
+                    <th>create time</th>
+                    <th>status</th>
+                    <th>replications</th>
+                </tr>
+                {{with .Files}}
+                {{range .}}
+                <tr>
+                    <th><a href="/download?id={{.ID}}">{{.Name}}</a></th>
+                    <th>{{.Length}}</th>
+                    <th>{{.Createtime}}</th>
+                    <th>{{.Status}}</th>
+                    <th>
+                        {{with .Blocks}}
+                        {{range .}}
+                        {{.Chunk}}
+                        {{end}}
+                        {{end}}
+                    </th>
+                </tr>
+                {{end}}
+                {{end}}
+            </table>
+            <form action="upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" value="">
+                <input type="submit" name="submit">
+            </form>
+            <button class="btn btn-default" id="logout" style="margin-top: 10px;">Logout</button>
+        </div>
+    </div>
+</div>
+
+</body>
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+<script>
+    Date.prototype.Format = function (fmt) { //author: meizz
+        var o = {
+            "M+": this.getMonth() + 1, //月份
+            "d+": this.getDate(), //日
+            "h+": this.getHours(), //小时
+            "m+": this.getMinutes(), //分
+            "s+": this.getSeconds(), //秒
+            "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+            "S": this.getMilliseconds() //毫秒
+        };
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+        for (var k in o)
+            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        return fmt;
+    }
+
+    $(document).ready(function () {
+        $("#time").html(new Date().Format("yyyy-MM-dd hh:mm:ss"));
+        setInterval(function () {
+            $("#time").html(new Date().Format("yyyy-MM-dd hh:mm:ss"));
+        },1000);
+
+        $("#login").click(function () {
+            $("#login").hide();
+            $("#form").show();
+        })
+
+        $("#logout").click(function () {
+            $("#login").show();
+            $("#form").hide();
+        })
+    })
+</script>
+</html>

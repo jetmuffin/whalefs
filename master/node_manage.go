@@ -61,6 +61,15 @@ func (n *NodeManager) ListNode() []*Node {
 	return nodes
 }
 
+
+func (n *NodeManager) AddConnection(nodeID NodeID) {
+	n.lock.Lock()
+	defer n.lock.Unlock()
+	if node, exists := n.chunks[nodeID]; exists {
+		node.Connections ++
+	}
+}
+
 // RegisterChunkNode generate universal unique id for a chunk node and register this node.
 // to master's map.
 func (n *NodeManager) RegisterChunkNode(addr string) NodeID {

@@ -8,6 +8,7 @@ import (
 	. "github.com/JetMuffin/whalefs/types"
 	"github.com/JetMuffin/whalefs/communication"
 	"bytes"
+	"time"
 )
 
 type ChunkRPC struct {
@@ -54,6 +55,11 @@ func (c *ChunkRPC) Sync(block Block, checksum *string) error {
 	log.Infof("Successful synchronize block %v with checksum %v", block.ID, cs)
 
 	c.blockSyncDone <- block.Header
+	return nil
+}
+
+func (c *ChunkRPC) Time(args interface{}, timestamp *int64) error {
+	*timestamp = time.Now().Unix()
 	return nil
 }
 

@@ -38,3 +38,12 @@ type SyncDoneResponse struct {
 
 }
 
+type WsInitialMessage struct {
+	Type 	   string     `json:"type"`
+	NodeAddr   string     `json:"node_addr"`
+	NodeTime   int64      `json:"node_time"`
+}
+
+type WsMessage struct {
+	Type string  `json:"type"`
+}

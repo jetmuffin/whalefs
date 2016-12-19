@@ -5,6 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/JetMuffin/whalefs/master"
 	"github.com/JetMuffin/whalefs/chunk"
+	"github.com/JetMuffin/whalefs/client"
 )
 
 func main() {
@@ -46,6 +47,18 @@ func main() {
 		c.Run()
 
 		<-make(chan bool)
+	})
+
+	cli.Command("client", "Run client", func(flag cmd.Flags) {
+		configPath := flag.String("config", "./conf/whale.conf", "path to the client config file")
+		flag.Parse()
+
+		config, err := cmd.NewConfig(*configPath)
+		if err != nil {
+			log.Fatalf("Unexpected error when read config file: %v", err)
+		}
+		c := client.NewClient(config)
+		c.Run()
 	})
 
 	cli.Run()

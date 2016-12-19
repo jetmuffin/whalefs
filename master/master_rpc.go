@@ -76,6 +76,14 @@ func (c *MasterRPC) SyncDone(block *BlockHeader, reply *comm.SyncDoneResponse) e
 	return nil
 }
 
+func (c *MasterRPC) ConnectChunk(args interface{}, chunkAddr *string) error {
+	nodes := c.nodeManager.LeastConnectionNodes()
+	node := c.nodeManager.GetNode(nodes[0])
+	*chunkAddr = node.Addr
+	log.Infof("A client connect to node %v.", node.ID)
+	return nil
+}
+
 // ListenRPC setup a RPC server on master node.
 func (m *Master) ListenRPC() {
 	rpc.Register(NewMasterRPC(m.nodeManager, m.blockManager, m.replicationController))
