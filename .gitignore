@@ -30,5 +30,5 @@ _testmain.go
 upload/*
 store/*
 
-deploy.sh
+deploy*.sh
 conf/whale.conf

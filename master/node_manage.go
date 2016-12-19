@@ -118,9 +118,15 @@ func (n *NodeManager) LeastConnectionNodes() []NodeID {
 }
 
 // LostNode wipe a node from healthy node.
-func (n *NodeManager) LostNode(node *Node) {
+func (n *NodeManager) LostNode(node *Node, blockManager *BlockManager) {
 	// TODO: label node as unhealthy and enable re-registerting
-
+	log.Infof("Node %v lost, delete %v blocks of it.", node.ID, len(node.Blocks))
+	for _, blockID := range(node.Blocks) {
+		block := blockManager.GetBlock(blockID)
+		if block != nil {
+			blockManager.DeleteBlock(block.FileID, block.BlockID)
+		}
+	}
 	n.DeleteNode(node.ID)
 	log.Infof("Node %v disconnect from master, %v nodes totally now.", node.ID, len(n.chunks))
 }

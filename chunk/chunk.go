@@ -102,8 +102,11 @@ func heartbeat(c *ChunkServer) {
 
 	// synchronize blocks
 	go func() {
-		for _, syncBlocks := range(reply.SyncBlocks) {
-			c.blocksToSync <- syncBlocks
+		if len(reply.SyncBlocks) > 0 {
+			log.Infof("Receive synchronize commands for %v blocks", len(reply.SyncBlocks))
+		}
+		for _, syncBlock := range(reply.SyncBlocks) {
+			c.blocksToSync <- syncBlock
 		}
 	}()
 }

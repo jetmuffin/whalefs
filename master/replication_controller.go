@@ -21,14 +21,8 @@ func (rc *ReplicationController) Replicate(blockManager *BlockManager, nodeManag
 		block := blockManager.GetBlock(id)
 		file := blockManager.GetFile(block.FileID)
 
-		// if this file is synchronizing now
-		if file.Status == FileSync {
-			continue
-		}
-
-		// if this file has enough replications
-		if file.Replications >= rc.defaultReplication {
-			file.Status = FileOK
+		// if this file is synchronizing now or it has enough replications
+		if file.Status == FileSync || file.Replications >= rc.defaultReplication {
 			continue
 		}
 

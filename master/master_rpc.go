@@ -66,8 +66,13 @@ func (c *MasterRPC) Heartbeat(message comm.HeartbeatMessage, reply *comm.Heartbe
 
 func (c *MasterRPC) SyncDone(block *BlockHeader, reply *comm.SyncDoneResponse) error {
 	c.blockManager.AddBlock(block.FileID, block)
+	file := c.blockManager.GetFile(block.FileID)
 	log.Infof("Synchronize done on node %v for block %v.", block.Chunk, block.BlockID)
 
+	if file.Replications >= c.replicationController.defaultReplication {
+		c.blockManager.UpdateFileStatus(block.FileID, FileOK)
+		log.Infof("Block %v synchronize finished.", block.BlockID)
+	}
 	return nil
 }
 

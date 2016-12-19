@@ -10,15 +10,19 @@ import (
 
 func (chunk *ChunkServer) synchronize()  {
 	go func() {
-		syncBlock := <- chunk.blocksToSync
-		chunk.sendBlock(syncBlock)
+		for {
+			syncBlock := <- chunk.blocksToSync
+			chunk.sendBlock(syncBlock)
+		}
 	} ()
 }
 
 func (chunk *ChunkServer) synchronizeDone() {
 	go func() {
-		block := <- chunk.blockSyncDone
-		chunk.alertMaster(block)
+		for {
+			block := <- chunk.blockSyncDone
+			chunk.alertMaster(block)
+		}
 	} ()
 }
 

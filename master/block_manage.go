@@ -53,10 +53,10 @@ func (b *BlockManager) ListFile() []*File {
 func (b *BlockManager) AddBlock(id FileID, block *BlockHeader) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
-	if _, exists := b.files[id]; exists {
+	if file, exists := b.files[id]; exists {
 		// TODO: ensure thread safe for blocks.
-		b.files[id].Blocks[block.BlockID] = block
-		b.files[id].Replications ++
+		file.Blocks[block.BlockID] = block
+		file.Replications = len(file.Blocks)
 		block.FileID = id
 		b.blocks[block.BlockID] = block
 	}
@@ -69,6 +69,7 @@ func (b *BlockManager) DeleteBlock(id FileID, blockID BlockID) {
 	if file, exists := b.files[id]; exists {
 		if _, bexists := file.Blocks[blockID]; bexists {
 			delete(file.Blocks, blockID)
+			file.Replications = len(file.Blocks)
 		}
 	}
 	if _, exists := b.blocks[blockID]; exists {
